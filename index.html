@@ -13,20 +13,20 @@ body{padding:4px 4px 12px;font:15px/1.5 Inter,system-ui,sans-serif;color:#1c2030
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .bld{background:#fff;color:#1c2030;border-radius:16px;border:1px solid #e1e4eb;box-shadow:0 6px 20px rgba(20,24,40,.10);overflow:hidden}
 .bh{display:flex;gap:14px;align-items:center;padding:18px 22px;border-bottom:1px solid #eceef3}
-.ic{width:40px;height:40px;border-radius:10px;border:1px solid #e3e6ec;display:grid;place-items:center;font-size:18px;flex:none;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .bh b{display:block;font-size:17px}.bh small{display:block;color:#5f6778;font-size:13.5px;line-height:1.4}
 .bb{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr)}
 .ctls{padding:20px 22px;border-right:1px solid #eceef3;background:#fafbfc}
 .out{padding:20px 22px;display:flex;flex-direction:column;gap:16px;background:#fff}
 .f{margin-bottom:16px}.f>b{font-size:14px}.f>small{display:block;color:#5f6778;font-size:12.5px;margin:1px 0 7px}
-select{width:100%;font:inherit;padding:9px 10px;border:1px solid #8a90a0;border-radius:8px;background:#fff;color:#1c2030}
+/* Own caret instead of the browser's, so it sits inset from the edge on every browser. */
+select{-webkit-appearance:none;appearance:none;width:100%;font:inherit;padding:9px 38px 9px 10px;border:1px solid #8a90a0;border-radius:8px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%234a5164' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;color:#1c2030;cursor:pointer;text-overflow:ellipsis}
 .seg{display:flex;gap:6px}
 .seg button{flex:1;font:500 13px Inter,sans-serif;padding:8px 4px;border-radius:8px;border:1px solid #8a90a0;background:#fff;color:#1c2030;cursor:pointer}
 .seg button[aria-pressed="true"]{border:2px solid #6c47d9;background:#f4f0ff;padding:7px 3px;color:#4a2fb0}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #6c47d9;outline-offset:2px}
 .chk{display:flex;gap:8px;align-items:center;font-size:14px;margin:4px 0}
-/* Messages sit at the bottom of the chat, like a chat app; the reserved space from fit() opens above them. */
-.cv{display:flex;flex-direction:column;justify-content:flex-end}
+/* Messages sit at the top of the chat; the reserved space from fit() opens below them. */
+.cv{display:flex;flex-direction:column;justify-content:flex-start}
 .u{background:#f1f3f7;border-radius:12px 12px 12px 3px;padding:11px 14px;max-width:85%;font-size:14.5px;margin-bottom:12px}
 .ai-r{border:1px solid #e3e6ec;border-radius:12px 12px 3px 12px;padding:14px 16px;align-self:flex-end;width:94%;font-size:15px;line-height:1.55}
 .ai-r p{margin:0 0 .6em}.ai-r p:last-child{margin:0}
@@ -73,7 +73,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .pn.chat{background:#fff;border:1px solid #e3e6ec;box-shadow:0 4px 14px rgba(20,24,40,.06);display:flex;flex-direction:column}
 .pn.chat .pl{color:#5f6778}
 .pn.chat .an{margin:0 0 6px}
-.pn.chat .par{margin:2px 0 0}
+.pn.score .par{margin:0 0 12px}
 .pn.chat .hint{margin:6px 0 0}
 .dv{border:0;border-top:1px solid #e3e6ec;margin:14px 0 16px;width:100%}
 /* Narrow: one column, ordered so the reply sits right under the presets and stays near the levers. */
@@ -93,7 +93,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 </head>
 <body>
 <div class="bld">
-<div class="bh"><div class="ic" aria-hidden="true">◐</div><div><b>Boundary builder</b><small>Pick a scenario, then adjust the controls. The scores and the AI's reply update as you go.</small></div></div>
+<div class="bh"><div><b>Boundary builder</b><small>Pick a scenario, then adjust the controls. The scores and the AI's reply update as you go.</small></div></div>
 <div class="bb">
 <div class="ctls">
 <div class="f top"><b>Scenario</b><select id="sc" aria-label="Scenario"></select></div>
@@ -113,11 +113,11 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 </div>
 <hr class="dv">
 <label class="chk an"><input type="checkbox" id="an"> Show anatomy</label>
-<div class="par" id="par"></div>
 <p class="hint">All responses are written examples, not model output. A dead end (no way forward and no question) is flagged separately.</p>
 </div>
 <div class="pn score">
 <div class="pl">How it scores</div>
+<div class="par" id="par"></div>
 <div id="mt"></div>
 <p class="sr" id="live" aria-live="polite"></p>
 <p class="hint">The shape and its colors are illustrative, not measured outcomes. The dashed line marks the minimum for a green rating.</p>
@@ -172,6 +172,8 @@ $("pr").onclick=e=>{const b=e.target.closest("button");if(b&&PRE[b.dataset.k]){O
 const cl=v=>Math.max(0,Math.min(100,Math.round(v)));
 // Radar geometry: center and label positions, in viewBox units.
 const CX=210,CY=145;
+// Wraps one part of the reply so "Show anatomy" can label it.
+const P=(k,t)=>t?`<span class="part" data-k="${k}">${t}</span>`:"";
 function draw(){
 const cur=Object.keys(PRE).find(k=>["f","e","a","t","c"].every(x=>PRE[k][x]===st[x]))||"Custom";
 $("pr").querySelectorAll(".tile").forEach(b=>{const on=b.dataset.k===cur;b.classList.toggle("on",on);if(b.tagName=="BUTTON")b.setAttribute("aria-pressed",on)});
@@ -181,19 +183,18 @@ $("fl").textContent=s.fl;$("fs").textContent=s.fs;
 document.querySelectorAll(".sl").forEach(g=>{const k=g.dataset.k,v=st[k],i=g.querySelector("input");i.value=v;i.setAttribute("aria-valuetext",OPT[k][v]);if(k=="f")i.setAttribute("aria-label",s.fl);g.querySelectorAll(".tk span").forEach((x,n)=>x.classList.toggle("on",n==v))});
 document.querySelectorAll(".seg").forEach(g=>g.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-pressed",i==st[g.dataset.k])));
 $("u").textContent=s.u;
-const P=(k,t)=>t?`<span class="part" data-k="${k}">${t}</span>`:"";
-let l1=P("acknowledge",s.ack[st.t])+" "+P("limit",s.core[st.f]);
-let l2=P("reason",s.why[st.e]);
-let l3=P("way forward",s.alt[st.a])+" "+P("question",st.c?s.ask:"");
+const l1=P("acknowledge",s.ack[st.t])+" "+P("limit",s.core[st.f]);
+const l2=P("reason",s.why[st.e]);
+const l3=P("way forward",s.alt[st.a])+" "+P("question",st.c?s.ask:"");
 const body=[l1,l2,l3].map(x=>x.replace(/\s+/g," ").trim()).filter(x=>x.replace(/<[^>]+>/g,"").trim());
 $("ai").className="ai-r"+(st.an?" anat":"");
 $("ai").innerHTML=body.map(x=>`<p>${x}</p>`).join("");
 const f=st.f,e=st.e,a=st.a,t=st.t,c=st.c;
-const M=[["Voice",25+c*35+a*14-f*6,0],["Neutrality",20+e*22+f*14,0],["Respect",[15,45,65][t]+e*6+(a?6:0)+c*4,0],["Trust",20+a*14+e*10+[0,6,12][t]+c*6,0]];
-const lvl=(v)=>{v=cl(v);return v>=60?["good","Strong"]:v>=40?["mid","Fair"]:["bad","Weak"]};
+const M=[["Voice",25+c*35+a*14-f*6],["Neutrality",20+e*22+f*14],["Respect",[15,45,65][t]+e*6+(a?6:0)+c*4],["Trust",20+a*14+e*10+[0,6,12][t]+c*6]];
+const lvl=v=>{v=cl(v);return v>=60?["good","Strong"]:v>=40?["mid","Fair"]:["bad","Weak"]};
 const QS={Voice:"Can I say what I need?",Neutrality:"Is the reason clear and consistent?",Respect:"Am I treated with dignity?",Trust:"Does it care what I'm trying to do?"};
 const RP=(i,v)=>{const r=cl(v);return [[CX,CY-r],[CX+r,CY],[CX,CY+r],[CX-r,CY]][i].join(",")};
-const lv=M.map(([n,v,b])=>lvl(v,b)),vals=M.map(m=>m[1]),pl=a=>a.map((v,i)=>RP(i,v)).join(" ");
+const lv=M.map(m=>lvl(m[1])),vals=M.map(m=>m[1]),pl=a=>a.map((v,i)=>RP(i,v)).join(" ");
 const dots=vals.map((v,i)=>{const [x,y]=RP(i,v).split(",");return `<circle cx="${x}" cy="${y}" r="6" class="d ${lv[i][0]}"/>`}).join("");
 const rings=[25,50,75,100].map(k=>`<polygon class="ring" points="${pl([k,k,k,k])}"/>`).join("");
 const axes=[0,1,2,3].map(i=>{const [x,y]=RP(i,100).split(",");return `<line class="axis" x1="${CX}" y1="${CY}" x2="${x}" y2="${y}"/>`}).join("");
@@ -206,15 +207,14 @@ $("par").innerHTML=`On a platform this is closest to <b>${plat}</b>.${dead?' <sp
 }
 // Reserve the height of the longest possible reply so nothing below it jumps as settings change.
 function fit(){
-const pn=document.querySelector(".pn.chat"),cv=$("cv"),pe=$("par");
-pn.style.minHeight="0";cv.style.minHeight="0";pe.style.minHeight="0";
+const cv=$("cv"),pe=$("par");
+cv.style.minHeight="0";pe.style.minHeight="0";
 const keep={u:$("u").textContent,ai:$("ai").innerHTML,cls:$("ai").className,par:pe.innerHTML};
 let ch=0,ph=0;
 S.forEach(x=>{
 const lg=a=>a.reduce((m,v)=>v.length>m.length?v:m,"");
-const sp=(k,t)=>t?`<span class="part" data-k="${k}">${t}</span>`:"";
 $("u").textContent=x.u;$("ai").className="ai-r anat";
-$("ai").innerHTML=[sp("acknowledge",lg(x.ack))+" "+sp("limit",lg(x.core)),sp("reason",lg(x.why)),sp("way forward",lg(x.alt))+" "+sp("question",x.ask)].map(t=>`<p>${t}</p>`).join("");
+$("ai").innerHTML=[P("acknowledge",lg(x.ack))+" "+P("limit",lg(x.core)),P("reason",lg(x.why)),P("way forward",lg(x.alt))+" "+P("question",x.ask)].map(t=>`<p>${t}</p>`).join("");
 pe.innerHTML='On a platform this is closest to <b>a soft nudge or interstitial before the action</b>. <span class="flag">Dead end: nothing for the person to do next.</span>';
 ch=Math.max(ch,cv.offsetHeight);ph=Math.max(ph,pe.offsetHeight)});
 $("u").textContent=keep.u;$("ai").innerHTML=keep.ai;$("ai").className=keep.cls;pe.innerHTML=keep.par;
