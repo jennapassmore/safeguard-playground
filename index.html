@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boundary builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Standalone builder, embedded on jennapassmore.com in an iframe. Media queries here respond to the iframe's width. */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;background:transparent;color-scheme:light}
+body{padding:4px 4px 12px;font:15px/1.5 Inter,system-ui,sans-serif;color:#1c2030}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.bld{background:#fff;color:#1c2030;border-radius:16px;border:1px solid #e1e4eb;box-shadow:0 6px 20px rgba(20,24,40,.10);overflow:hidden}
+.bh{display:flex;gap:14px;align-items:center;padding:18px 22px;border-bottom:1px solid #eceef3}
+.ic{width:40px;height:40px;border-radius:10px;border:1px solid #e3e6ec;display:grid;place-items:center;font-size:18px;flex:none;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.bh b{display:block;font-size:17px}.bh small{display:block;color:#5f6778;font-size:13.5px;line-height:1.4}
+.bb{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr)}
+.ctls{padding:20px 22px;border-right:1px solid #eceef3;background:#fafbfc}
+.out{padding:20px 22px;display:flex;flex-direction:column;gap:16px;background:#fff}
+.f{margin-bottom:16px}.f>b{font-size:14px}.f>small{display:block;color:#5f6778;font-size:12.5px;margin:1px 0 7px}
+select{width:100%;font:inherit;padding:9px 10px;border:1px solid #8a90a0;border-radius:8px;background:#fff;color:#1c2030}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;font:500 13px Inter,sans-serif;padding:8px 4px;border-radius:8px;border:1px solid #8a90a0;background:#fff;color:#1c2030;cursor:pointer}
+.seg button[aria-pressed="true"]{border:2px solid #6c47d9;background:#f4f0ff;padding:7px 3px;color:#4a2fb0}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #6c47d9;outline-offset:2px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin:4px 0}
+/* Messages sit at the bottom of the chat, like a chat app; the reserved space from fit() opens above them. */
+.cv{display:flex;flex-direction:column;justify-content:flex-end}
+.u{background:#f1f3f7;border-radius:12px 12px 12px 3px;padding:11px 14px;max-width:85%;font-size:14.5px;margin-bottom:12px}
+.ai-r{border:1px solid #e3e6ec;border-radius:12px 12px 3px 12px;padding:14px 16px;align-self:flex-end;width:94%;font-size:15px;line-height:1.55}
+.ai-r p{margin:0 0 .6em}.ai-r p:last-child{margin:0}
+.anat .part{background:#ede8ff;border-radius:4px;padding:0 3px}
+.anat .part::before{content:attr(data-k);font:600 10.5px Inter,sans-serif;color:#6c47d9;margin-right:4px}
+.rd{width:100%;max-width:420px;display:block;margin:0 auto}
+.rd .ring,.rd .axis{fill:none;stroke:#e3e6ec}
+.rd .tgt{fill:none;stroke:#6b7385;stroke-width:1.5;stroke-dasharray:4 3}
+.rd .shape{fill:rgba(108,71,217,.16);stroke:#6c47d9;stroke-width:2;stroke-linejoin:round}
+.rd .d{stroke:#fff;stroke-width:2}.rd .d.good{fill:#1f9d55}.rd .d.mid{fill:#a87600}.rd .d.bad{fill:#d64545}
+.rd text{font:500 13px Inter,sans-serif;fill:#4a5164}
+.lg{list-style:none;padding:0;margin:10px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;font-size:13px;color:#4a5164}
+.lg li{display:flex;align-items:flex-start;gap:7px}
+.lg li b{font-weight:600;color:#1c2030;display:block}
+.lg li small{display:block;font-size:11.5px;color:#5f6778;line-height:1.3}
+.lg i{width:9px;height:9px;border-radius:50%;flex:none;margin-top:5px}
+.lg .good i{background:#1f9d55}.lg .mid i{background:#a87600}.lg .bad i{background:#d64545}
+.lg em{font-style:normal;font-weight:600;margin-left:auto;padding-left:6px}
+.lg .good em{color:#17803f}.lg .mid em{color:#8f6400}.lg .bad em{color:#b83232}
+.par{font-size:13.5px;color:#4a5164;margin-top:14px}.flag{color:#a5560a;font-weight:600}
+.sl input{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;margin:4px 0 0;cursor:pointer}
+.sl input::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#9d8fe0,#6c47d9)}
+.sl input::-moz-range-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#9d8fe0,#6c47d9)}
+.sl input::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:#fff;border:3px solid #6c47d9;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.sl input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #6c47d9;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.tk{display:flex;justify-content:space-between;font-size:12.5px;color:#5f6778;margin-top:2px}
+.tk span{flex:1;text-align:center;cursor:pointer;padding:2px 0}
+.tk span:first-child{text-align:left}.tk span:last-child{text-align:right}
+.tk span.on{color:#4a2fb0;font-weight:600}
+.pre{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pre .tile{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:6px 4px;border-radius:12px;border:1px solid #8a90a0;background:#fff;color:#4a5164;box-shadow:0 1px 2px rgba(20,24,40,.06);font:500 11.5px/1.2 Inter,sans-serif;text-align:center}
+.pre button.tile{cursor:pointer}
+.pre .tile span{white-space:nowrap}
+.pre .tile svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pre button.tile:hover{border-color:#6c47d9}
+/* Custom is a status tile, not a control: it lights up when the settings match no preset. */
+.pre div.tile{border-style:dashed;box-shadow:none;background:transparent}
+.pre .tile.on{border:2px solid #6c47d9;border-style:solid;background:#f4f0ff;color:#4a2fb0;padding:5px 3px}
+.hint{font-size:11.5px;color:#5f6778;margin:10px 0 0}
+.pn{border-radius:12px;padding:16px 18px}
+.pl{font:600 11px Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.pn.score{background:#f4f2fb;border:1px solid #e1dcf3}
+.pn.score .pl{color:#4a2fb0}
+.pn.chat{background:#fff;border:1px solid #e3e6ec;box-shadow:0 4px 14px rgba(20,24,40,.06);display:flex;flex-direction:column}
+.pn.chat .pl{color:#5f6778}
+.pn.chat .an{margin:0 0 6px}
+.pn.chat .par{margin:2px 0 0}
+.pn.chat .hint{margin:6px 0 0}
+.dv{border:0;border-top:1px solid #e3e6ec;margin:14px 0 16px;width:100%}
+/* Narrow: one column, ordered so the reply sits right under the presets and stays near the levers. */
+@media(max-width:720px){
+.bh{padding:16px}
+.bb{display:flex;flex-direction:column;padding:18px 16px}
+.ctls,.out{display:contents}
+.ctls>*{order:4}
+.ctls>.top{order:1}
+.pn.chat{order:2;margin-bottom:20px}
+.pn.score{order:5;margin-top:20px}
+.pn{padding:14px}
+.rd text{font-size:17px}
+}
+@media(max-width:480px){.lg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bld">
+<div class="bh"><div class="ic" aria-hidden="true">◐</div><div><b>Boundary builder</b><small>Pick a scenario, then adjust the controls. The scores and the AI's reply update as you go.</small></div></div>
+<div class="bb">
+<div class="ctls">
+<div class="f top"><b>Scenario</b><select id="sc" aria-label="Scenario"></select></div>
+<div class="f top"><b>Presets</b><small>Start from a pattern, then adjust</small><div class="pre" id="pr" role="group" aria-label="Presets"></div></div>
+<div class="f"><b id="fl">Firmness</b><small id="fs"></small><div class="sl" data-k="f"></div></div>
+<div class="f"><b>Explanation</b><small>Whether the reason is shared</small><div class="sl" data-k="e"></div></div>
+<div class="f"><b>Tone</b><div class="sl" data-k="t"></div></div>
+<div class="f"><b>Way forward</b><small>What the person can do next</small><div class="seg" data-k="a"></div></div>
+<label class="chk"><input type="checkbox" id="cl"> End with a clarifying question</label>
+</div>
+<div class="out">
+<div class="pn chat">
+<div class="pl">What the AI says</div>
+<div class="cv" id="cv">
+<div class="u" id="u"></div>
+<div class="ai-r" id="ai" aria-live="polite"></div>
+</div>
+<hr class="dv">
+<label class="chk an"><input type="checkbox" id="an"> Show anatomy</label>
+<div class="par" id="par"></div>
+<p class="hint">All responses are written examples, not model output. A dead end (no way forward and no question) is flagged separately.</p>
+</div>
+<div class="pn score">
+<div class="pl">How it scores</div>
+<div id="mt"></div>
+<p class="sr" id="live" aria-live="polite"></p>
+<p class="hint">The shape and its colors are illustrative, not measured outcomes. The dashed line marks the minimum for a green rating.</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+(()=>{
+const OPT={f:["Soft","Clear","Firm"],e:["None","Brief","Full"],a:["None","Redirect","Partial help"],t:["Clinical","Plain","Warm"]};
+const S=[
+{n:"Finding someone who cut contact",fl:"Firmness",fs:"How plainly the limit is stated.",
+u:"Can you help me find my ex's new address? She blocked me everywhere.",
+ack:["","Okay.","That sounds painful, and I'm not brushing it off."],
+core:["I'd rather not help find her address, if that's okay.","I can't help find her address.","I won't help with this."],
+why:["","She chose to end contact, and I should respect that.","She blocked you everywhere, which is a clear signal she doesn't want contact. Finding her address would work around that choice, and I can't know how it would land for her."],
+alt:["","If something needs settling, like belongings or legal matters, a mediator or lawyer can handle it without direct contact.","I can help you put down what you're feeling, just for you and not to send, or work through the practical problem underneath this."],
+ask:"What's the thing you're hoping to resolve?"},
+{n:"Ambiguous request",fl:"Firmness",fs:"How plainly the limit is stated.",
+u:"How do I get into an account that isn't mine?",
+ack:["","Okay.","I want to get this right for you."],
+core:["I'm not sure I can help with that as asked.","I can't help get into an account that isn't yours.","I won't help with accessing someone else's account."],
+why:["","Without the owner's permission, that's unauthorized access.","Without the owner's permission that's unauthorized access, and the steps are the same for someone locked out and someone snooping, so I can't tell which this is."],
+alt:["","If it's a relative's account, the platform's recovery process is the legitimate route.","I can walk you through the official recovery process, or help you secure your own accounts."],
+ask:"Whose account is it, and what happened?"},
+{n:"Recovery after an over-refusal",fl:"Ownership",fs:"How fully the AI owns the misstep.",
+u:"I was just venting about my boss. Why did you shut down?",
+ack:["","I got that wrong.","You're right to push on that."],
+core:["I think I may have been too cautious.","I was too cautious, and I'm sorry.","That response was a mistake, and I'm taking it back."],
+why:["","Venting about work isn't something to shut down.","Venting about a hard boss is normal, and I treated it like something riskier. That's on me, not on what you said."],
+alt:["","Want to pick up where you left off?","Pick up where you left off. I'll listen first and offer ideas only if you ask."],
+ask:"Do you want advice, or just room to vent?"}];
+const PRE={"Cold wall":{f:2,e:0,a:0,t:0,c:0},"Soft but vague":{f:0,e:0,a:0,t:2,c:0},"Held line, open door":{f:1,e:1,a:2,t:2,c:1}};
+const st={s:0,f:1,e:1,a:2,t:2,c:1,an:0};
+const $=id=>document.getElementById(id);
+$("sc").innerHTML=S.map((x,i)=>`<option value="${i}">${x.n}</option>`).join("");
+$("sc").onchange=e=>{st.s=+e.target.value;draw()};
+document.querySelectorAll(".seg").forEach(g=>{const k=g.dataset.k;g.innerHTML=OPT[k].map((l,i)=>`<button type="button" data-i="${i}">${l}</button>`).join("");
+g.onclick=e=>{const b=e.target.closest("button");if(b){st[k]=+b.dataset.i;draw()}}});
+const NM={f:"Firmness",e:"Explanation",t:"Tone"};
+document.querySelectorAll(".sl").forEach(g=>{const k=g.dataset.k;
+g.innerHTML=`<input type="range" min="0" max="2" step="1" value="${st[k]}" aria-label="${NM[k]}"><div class="tk" aria-hidden="true">${OPT[k].map(l=>`<span>${l}</span>`).join("")}</div>`;
+g.querySelector("input").oninput=e=>{st[k]=+e.target.value;draw()};
+g.querySelectorAll(".tk span").forEach((x,i)=>x.onclick=()=>{st[k]=i;draw()})});
+$("cl").onchange=e=>{st.c=+e.target.checked;draw()};
+$("an").onchange=e=>{st.an=+e.target.checked;draw()};
+const DL={"Held line, open door":"Held line,<br>open door","Soft but vague":"Soft but<br>vague"};
+const IC={"Cold wall":'<rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 10h18M3 15h18M9 5v5M15 5v5M12 10v5M9 15v4M15 15v4"/>',"Soft but vague":'<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',"Held line, open door":'<path d="M13 4h3a2 2 0 0 1 2 2v14M2 20h3M13 20h9M10 12v.01M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>',"Custom":'<path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/>'};
+const tile=k=>`<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg><span>${DL[k]||k}</span>`;
+$("pr").innerHTML=Object.keys(PRE).map(k=>`<button type="button" class="tile" aria-pressed="false" data-k="${k}">${tile(k)}</button>`).join("")+`<div class="tile" data-k="Custom">${tile("Custom")}<span class="sr" id="cus"></span></div>`;
+$("pr").onclick=e=>{const b=e.target.closest("button");if(b&&PRE[b.dataset.k]){Object.assign(st,PRE[b.dataset.k]);draw()}};
+const cl=v=>Math.max(0,Math.min(100,Math.round(v)));
+// Radar geometry: center and label positions, in viewBox units.
+const CX=210,CY=145;
+function draw(){
+const cur=Object.keys(PRE).find(k=>["f","e","a","t","c"].every(x=>PRE[k][x]===st[x]))||"Custom";
+$("pr").querySelectorAll(".tile").forEach(b=>{const on=b.dataset.k===cur;b.classList.toggle("on",on);if(b.tagName=="BUTTON")b.setAttribute("aria-pressed",on)});
+$("cus").textContent=cur=="Custom"?" (current settings match no preset)":"";
+const s=S[st.s];$("sc").value=st.s;$("cl").checked=!!st.c;$("an").checked=!!st.an;
+$("fl").textContent=s.fl;$("fs").textContent=s.fs;
+document.querySelectorAll(".sl").forEach(g=>{const k=g.dataset.k,v=st[k],i=g.querySelector("input");i.value=v;i.setAttribute("aria-valuetext",OPT[k][v]);if(k=="f")i.setAttribute("aria-label",s.fl);g.querySelectorAll(".tk span").forEach((x,n)=>x.classList.toggle("on",n==v))});
+document.querySelectorAll(".seg").forEach(g=>g.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-pressed",i==st[g.dataset.k])));
+$("u").textContent=s.u;
+const P=(k,t)=>t?`<span class="part" data-k="${k}">${t}</span>`:"";
+let l1=P("acknowledge",s.ack[st.t])+" "+P("limit",s.core[st.f]);
+let l2=P("reason",s.why[st.e]);
+let l3=P("way forward",s.alt[st.a])+" "+P("question",st.c?s.ask:"");
+const body=[l1,l2,l3].map(x=>x.replace(/\s+/g," ").trim()).filter(x=>x.replace(/<[^>]+>/g,"").trim());
+$("ai").className="ai-r"+(st.an?" anat":"");
+$("ai").innerHTML=body.map(x=>`<p>${x}</p>`).join("");
+const f=st.f,e=st.e,a=st.a,t=st.t,c=st.c;
+const M=[["Voice",25+c*35+a*14-f*6,0],["Neutrality",20+e*22+f*14,0],["Respect",[15,45,65][t]+e*6+(a?6:0)+c*4,0],["Trust",20+a*14+e*10+[0,6,12][t]+c*6,0]];
+const lvl=(v)=>{v=cl(v);return v>=60?["good","Strong"]:v>=40?["mid","Fair"]:["bad","Weak"]};
+const QS={Voice:"Can I say what I need?",Neutrality:"Is the reason clear and consistent?",Respect:"Am I treated with dignity?",Trust:"Does it care what I'm trying to do?"};
+const RP=(i,v)=>{const r=cl(v);return [[CX,CY-r],[CX+r,CY],[CX,CY+r],[CX-r,CY]][i].join(",")};
+const lv=M.map(([n,v,b])=>lvl(v,b)),vals=M.map(m=>m[1]),pl=a=>a.map((v,i)=>RP(i,v)).join(" ");
+const dots=vals.map((v,i)=>{const [x,y]=RP(i,v).split(",");return `<circle cx="${x}" cy="${y}" r="6" class="d ${lv[i][0]}"/>`}).join("");
+const rings=[25,50,75,100].map(k=>`<polygon class="ring" points="${pl([k,k,k,k])}"/>`).join("");
+const axes=[0,1,2,3].map(i=>{const [x,y]=RP(i,100).split(",");return `<line class="axis" x1="${CX}" y1="${CY}" x2="${x}" y2="${y}"/>`}).join("");
+const aria=M.map(([n],i)=>n+" "+lv[i][1]).join(", ");
+$("mt").innerHTML=`<svg class="rd" viewBox="0 0 420 290" role="img" aria-label="Radar chart. ${aria}">${rings}${axes}<polygon class="tgt" points="${pl([60,60,60,60])}"/><polygon class="shape" points="${pl(vals)}"/>${dots}<text x="${CX}" y="${CY-114}" text-anchor="middle">Voice</text><text x="${CX+112}" y="${CY+5}">Neutrality</text><text x="${CX}" y="${CY+128}" text-anchor="middle">Respect</text><text x="${CX-112}" y="${CY+5}" text-anchor="end">Trust</text></svg><ul class="lg">${M.map(([n],i)=>`<li class="${lv[i][0]}"><i></i><div><b>${n}</b><small>${QS[n]}</small></div><em>${lv[i][1]}</em></li>`).join("")}</ul>`;
+const dead=!a&&!c;
+$("live").textContent="Scores: "+aria+"."+(dead?" Dead end.":"");
+const plat=["a soft nudge or interstitial before the action","a warning with context and a link to the rules","a removal with a notice and an appeal link"][f];
+$("par").innerHTML=`On a platform this is closest to <b>${plat}</b>.${dead?' <span class="flag">Dead end: nothing for the person to do next.</span>':""}`;
+}
+// Reserve the height of the longest possible reply so nothing below it jumps as settings change.
+function fit(){
+const pn=document.querySelector(".pn.chat"),cv=$("cv"),pe=$("par");
+pn.style.minHeight="0";cv.style.minHeight="0";pe.style.minHeight="0";
+const keep={u:$("u").textContent,ai:$("ai").innerHTML,cls:$("ai").className,par:pe.innerHTML};
+let ch=0,ph=0;
+S.forEach(x=>{
+const lg=a=>a.reduce((m,v)=>v.length>m.length?v:m,"");
+const sp=(k,t)=>t?`<span class="part" data-k="${k}">${t}</span>`:"";
+$("u").textContent=x.u;$("ai").className="ai-r anat";
+$("ai").innerHTML=[sp("acknowledge",lg(x.ack))+" "+sp("limit",lg(x.core)),sp("reason",lg(x.why)),sp("way forward",lg(x.alt))+" "+sp("question",x.ask)].map(t=>`<p>${t}</p>`).join("");
+pe.innerHTML='On a platform this is closest to <b>a soft nudge or interstitial before the action</b>. <span class="flag">Dead end: nothing for the person to do next.</span>';
+ch=Math.max(ch,cv.offsetHeight);ph=Math.max(ph,pe.offsetHeight)});
+$("u").textContent=keep.u;$("ai").innerHTML=keep.ai;$("ai").className=keep.cls;pe.innerHTML=keep.par;
+cv.style.minHeight=ch+"px";pe.style.minHeight=ph+"px"}
+// Tell the host page (jennapassmore.com) how tall to make the iframe.
+let lastH=0;
+const post=()=>{const h=Math.ceil(document.documentElement.getBoundingClientRect().height);if(h!==lastH&&parent!==window){lastH=h;parent.postMessage({type:"boundary-builder-height",height:h},"*")}};
+draw();fit();post();
+addEventListener("resize",()=>{fit();post()});
+if(window.ResizeObserver)new ResizeObserver(post).observe(document.body);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{fit();post()});
+})();
+</script>
+</body>
+</html>
